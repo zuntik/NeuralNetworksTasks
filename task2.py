@@ -40,20 +40,29 @@ def load_isolet():
 
   return (X, C, X_tst, C_tst)
 
-x_training, class_training, x_test, class_test = load_isolet()
+isolate_data, isolate_data_class, isolate_test, isolate_test_class = load_isolet()
 
-#number of images on the training set
-print("\nNumber of images on the training set")
-print(x_training.shape)
-#number of labels on the training set
-print("\nNumber of classes on the training set")
-print(len(class_training))
-# Each label is an intenger between 0 and 9
-print("\nEach class is a number between 1 and 26")
-print(class_training)
 
-#Number of images and labels on the test set
-print("\nNumber of images on the test set")
-print(x_test.shape)
-print("\nNumber of classes on the test set")
-print(len(class_test))
+
+print("\n--DATA SET--")
+print("\nWe have 6238 character and classes (each character belongs to a class)")
+print("Each character is represented with 300 attributes ranging between -1 and 1")
+print(isolate_data.shape)
+
+print("\nEach class is represented by a number between 1 and 26")
+print(isolate_data_class)
+
+print("\n--TEST SET--")
+print("\nWe have 1559 characters and classes, we have 300 attributes")
+print(isolate_test.shape)
+
+# To train the network we have to convert the classes in one out of 26 vectors
+# We pass the previos data and write the dimension of the new vector (26 values per vector)
+isolate_data_class_binary = tf.one_hot(isolate_data_class, 26)
+# Now we have 1559 binary vectors each one with a range from 1 to 26
+print(isolate_data_class_binary)
+
+
+#--Normalize data--
+# normalize_data = (data - min(data)) / (max(data) - min(data))
+isolate_data = ((isolate_data +1) / 2)
