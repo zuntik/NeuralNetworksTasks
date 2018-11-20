@@ -66,3 +66,5 @@ print(isolate_data_class_binary)
 #--Normalize data--
 # normalize_data = (data - min(data)) / (max(data) - min(data))
 isolate_data = ((isolate_data +1) / 2)
+
+# look model.fit documentation, you can put bacht dim there
