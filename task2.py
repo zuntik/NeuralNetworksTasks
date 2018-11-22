@@ -71,18 +71,48 @@ isolate_data = ((isolate_data +1) / 2)
 # look model.fit documentation, you can put bacht dim there
 
 # the number of attributes is analogous the number of pixels of an input image
-num_attributes = 300
+num_attributes = isolate_test.shape[1]
 # one class per leter
-num_classes = 26
+num_classes = isolate_data_class_binary.shape[1]
 
 
-# Set the variables
+###############################################################################
+# Define the network
+###############################################################################
+# There we define the number of hidden layers as well as the number of nodes
+# each hidden layer has
+# user input is only here
+# uncomment the network to use
+# notes:
+#     y is always the last layer and x is always the first for the rest
+#     of the code to work
+###############################################################################
+# basic scenario: one layer and cross entropy 
 
-W = tf.Variable(np.random.randn(num_attributes,num_classes), trainable=True)
-b = tf.Variable(np.zeros(num_classes),trainable=True)
+# W = tf.Variable(np.random.randn(num_attributes,num_classes), trainable=True)
+# b = tf.Variable(np.zeros(num_classes),trainable=True)
+# 
+# # define how to link the variables
+# x = tf.placeholder(shape=(None,num_attributes),dtype=tf.float64)
+# y = tf.nn.softmax(tf.matmul(x,W) + b)
+
+# 2 layers scenario
+
+# the number of neuros of the hidden layer is the only thing we can change
+num_hidden_neurons = 30
+
+W = tf.Variable(np.random.randn(num_attributes,num_hidden_neurons), trainable=True)
+b = tf.Variable(np.zeros(num_hidden_neurons),trainable=True)
+
+W_out = tf.Variable(np.random.randn(num_hidden_neurons, num_classes) ,trainable=True)
+b_out = tf.Variable(np.zeros(num_classes))
 
 x = tf.placeholder(shape=(None,num_attributes),dtype=tf.float64)
-y = tf.nn.softmax(tf.matmul(x,W) + b)
+z = tf.nn.tanh(tf.matmul(x,W) + b)
+y = tf.nn.softmax(tf.matmul(z,W_out) + b_out )
+
+
+###############################################################################
 
 
 y_ = tf.placeholder(shape=(None,num_classes),dtype=tf.float64)
