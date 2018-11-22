@@ -1,9 +1,9 @@
 import tensorflow as tf
-import keras
 
 # Helper libraries
 import numpy as np
 import matplotlib.pyplot as plt
+import itertools
 
 # Data
 # Character a...z
@@ -59,6 +59,7 @@ print(isolate_test.shape)
 # To train the network we have to convert the classes in one out of 26 vectors
 # We pass the previos data and write the dimension of the new vector (26 values per vector)
 isolate_data_class_binary = np.eye(26)[isolate_data_class-1]
+isolate_test_class_binary = np.eye(26)[isolate_test_class-1]
 # Now we have 1559 binary vectors each one with a range from 1 to 26
 print(isolate_data_class_binary)
 
@@ -69,7 +70,6 @@ isolate_data = ((isolate_data +1) / 2)
 
 # look model.fit documentation, you can put bacht dim there
 
-size_of_batch = 40
 # the number of attributes is analogous the number of pixels of an input image
 num_attributes = 300
 # one class per leter
@@ -96,6 +96,9 @@ init = tf.global_variables_initializer()
 sess = tf.Session()
 
 
+correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float64))
+
 # init the variables to start
 sess.run(init)
 
@@ -103,23 +106,53 @@ sess.run(init)
 test_error_list = []
 train_error_list = []
 
+test_acc_list = []
+train_acc_list = []
 
-# the total number of steps is given by the number of training examples / size
-# of each batch
-#   because the number of training examples is not a multiple of the size of 
-#   each batch, we must do a whole division and the number of examples for the
-#   last step will be the remainder of the division
-for i in range(isolate_data.shape[0] // size_of_batch):
-    # Compute a gradient step
-    #   for this to be a stochastic gradient descent, the step must be 
-    #   calculated of a different batch each time
-    sess.run(train_step, feed_dict={x:isolate_data[i*size_of_batch:(i+1)*size_of_batch] , y_:isolate_data_class_binary[i*size_of_batch:(i+1)*size_of_batch] } )
+# we must apply the stochastic gradient descent
 
-    # Compute the losses on training and testing sets for monitoring
-    train_err = sess.run(cross_entropy, feed_dict={x:isolate_data[i*size_of_batch:(i+1)*size_of_batch] , y_:isolate_data_class_binary[i*size_of_batch:(i+1)*size_of_batch]})
-    test_err = sess.run(cross_entropy, feed_dict={x:isolate_data[i*size_of_batch:(i+1)*size_of_batch] , y_:isolate_data_class_binary[i*size_of_batch:(i+1)*size_of_batch]})
+# doing number of examples / number of batches iterations will not be enough
+# to get a sufficiently small error so we must iterate over the batches several
+# times
+num_iterations = 700
+size_of_a_batch = 40
+
+X_batch_list = np.array_split(isolate_data, size_of_a_batch)
+labels_batch_list = np.array_split(isolate_data_class_binary, size_of_a_batch)
+
+for _ in itertools.repeat(None, num_iterations):
+
+    # Run gradient steps over each minibatch
+    for x_minibatch,labels_minibatch in zip(X_batch_list,labels_batch_list):
+        sess.run(train_step, feed_dict={x: x_minibatch, y_:labels_minibatch})# Compute a gradient step
+
+    # Compute the errors over the whole dataset
+    train_err = sess.run(cross_entropy, feed_dict={x:isolate_data, y_:isolate_data_class_binary})
+    test_err = sess.run(cross_entropy, feed_dict={x:isolate_test, y_:isolate_test_class_binary})
+    
+    # Compute the acc over the whole dataset
+    train_acc = sess.run(accuracy, feed_dict={x:isolate_data, y_:isolate_data_class_binary})
+    test_acc = sess.run(accuracy, feed_dict={x:isolate_test, y_:isolate_test_class_binary})
+
+    # Put it into the lists
     test_error_list.append(test_err)
     train_error_list.append(train_err)
+    test_acc_list.append(test_acc)
+    train_acc_list.append(train_acc)
 
 
+fig,ax_list = plt.subplots(1,2)
+ax_list[0].plot(train_error_list, color='blue', label='training', lw=2)
+ax_list[0].plot(test_error_list, color='green', label='testing', lw=2)
+ax_list[1].plot(train_acc_list, color='blue', label='training', lw=2)
+ax_list[1].plot(test_acc_list, color='green', label='testing', lw=2)
 
+ax_list[0].set_title('Cross-entropy')
+ax_list[0].set_xlabel('Training epoch')
+ax_list[0].set_ylabel('Cross-entropy')
+ax_list[1].set_title('Accuracy')
+ax_list[1].set_xlabel('Training epoch')
+ax_list[1].set_ylabel('Accuracy')
+plt.legend(loc=2)
+
+plt.show()
