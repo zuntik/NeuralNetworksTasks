@@ -44,24 +44,12 @@ isolate_data, isolate_data_class, isolate_test, isolate_test_class = load_isolet
 
 
 
-print("\n--DATA SET--")
-print("\nWe have 6238 character and classes (each character belongs to a class)")
-print("Each character is represented with 300 attributes ranging between -1 and 1")
-print(isolate_data.shape)
-
-print("\nEach class is represented by a number between 1 and 26")
-print(isolate_data_class)
-
-print("\n--TEST SET--")
-print("\nWe have 1559 characters and classes, we have 300 attributes")
-print(isolate_test.shape)
 
 # To train the network we have to convert the classes in one out of 26 vectors
 # We pass the previos data and write the dimension of the new vector (26 values per vector)
 isolate_data_class_binary = np.eye(26)[isolate_data_class-1]
 isolate_test_class_binary = np.eye(26)[isolate_test_class-1]
 # Now we have 1559 binary vectors each one with a range from 1 to 26
-print(isolate_data_class_binary)
 
 
 #--Normalize data--
@@ -97,19 +85,62 @@ num_classes = isolate_data_class_binary.shape[1]
 # y = tf.nn.softmax(tf.matmul(x,W) + b)
 
 # 2 layers scenario
-
 # the number of neuros of the hidden layer is the only thing we can change
-num_hidden_neurons = 30
 
+num_hidden_neurons = 26
+ 
 W = tf.Variable(np.random.randn(num_attributes,num_hidden_neurons), trainable=True)
 b = tf.Variable(np.zeros(num_hidden_neurons),trainable=True)
 
 W_out = tf.Variable(np.random.randn(num_hidden_neurons, num_classes) ,trainable=True)
-b_out = tf.Variable(np.zeros(num_classes))
+b_out = tf.Variable(np.zeros(num_classes) ,trainable=True)
 
 x = tf.placeholder(shape=(None,num_attributes),dtype=tf.float64)
 z = tf.nn.tanh(tf.matmul(x,W) + b)
 y = tf.nn.softmax(tf.matmul(z,W_out) + b_out )
+
+# 3 layers scenario
+
+# the number of neuros of the hidden layer is the only thing we can change
+# num_hidden_neurons = 100
+# num_hidden_neurons2 = 50
+# 
+# W = tf.Variable(np.random.randn(num_attributes,num_hidden_neurons), trainable=True)
+# b = tf.Variable(np.zeros(num_hidden_neurons),trainable=True)
+# 
+# W_mid = tf.Variable(np.random.randn(num_hidden_neurons, num_hidden_neurons2) ,trainable=True)
+# b_mid = tf.Variable(np.zeros(num_hidden_neurons2) ,trainable=True)
+# 
+# W_out = tf.Variable(np.random.randn(num_hidden_neurons2, num_classes) ,trainable=True)
+# b_out = tf.Variable(np.zeros(num_classes) ,trainable=True)
+# 
+# x = tf.placeholder(shape=(None,num_attributes),dtype=tf.float64)
+# z = tf.nn.tanh(tf.matmul(x,W) + b)
+# w = tf.nn.tanh(tf.matmul(z,W_mid + b_mid))
+# y = tf.nn.softmax(tf.matmul(w,W_out) + b_out)
+
+# 4 layers scenario - it is bad
+# num_hidden_neurons = 100
+# num_hidden_neurons2 = 85
+# num_hidden_neurons3 = 50
+# 
+# W = tf.Variable(np.random.randn(num_attributes,num_hidden_neurons), trainable=True)
+# b = tf.Variable(np.zeros(num_hidden_neurons),trainable=True)
+# 
+# W_mid = tf.Variable(np.random.randn(num_hidden_neurons, num_hidden_neurons2) ,trainable=True)
+# b_mid = tf.Variable(np.zeros(num_hidden_neurons2) ,trainable=True)
+# 
+# W_mid2 = tf.Variable(np.random.randn(num_hidden_neurons2, num_hidden_neurons3) ,trainable=True)
+# b_mid2 = tf.Variable(np.zeros(num_hidden_neurons3) ,trainable=True)
+# 
+# W_out = tf.Variable(np.random.randn(num_hidden_neurons3, num_classes) ,trainable=True)
+# b_out = tf.Variable(np.zeros(num_classes) ,trainable=True)
+# 
+# x = tf.placeholder(shape=(None,num_attributes),dtype=tf.float64)
+# z = tf.nn.tanh(tf.matmul(x,W) + b)
+# w = tf.nn.tanh(tf.matmul(z,W_mid + b_mid))
+# v = tf.nn.tanh(tf.matmul(w,W_mid2 + b_mid2))
+# y = tf.nn.softmax(tf.matmul(v,W_out) + b_out)
 
 
 ###############################################################################
@@ -118,7 +149,7 @@ y = tf.nn.softmax(tf.matmul(z,W_out) + b_out )
 y_ = tf.placeholder(shape=(None,num_classes),dtype=tf.float64)
 cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
 
-train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy) 
+train_step = tf.train.GradientDescentOptimizer(1).minimize(cross_entropy) 
 
 
 # Create an op that will initialize the variable on demand
@@ -144,7 +175,7 @@ train_acc_list = []
 # doing number of examples / number of batches iterations will not be enough
 # to get a sufficiently small error so we must iterate over the batches several
 # times
-num_iterations = 700
+num_iterations = 200
 size_of_a_batch = 40
 
 X_batch_list = np.array_split(isolate_data, size_of_a_batch)
