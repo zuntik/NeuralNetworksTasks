@@ -6,10 +6,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import numpy.random as rd
 
-# Data
-# Character a...z
-# 26 classes
-
 def load_isolet():
   # Loads the isolet dataset
   # Returns:
@@ -43,13 +39,25 @@ def load_isolet():
 
 isolate_data, isolate_data_class, isolate_test, isolate_test_class = load_isolet()
 
+# Recieves a placeholder x, and the number of inputs and outputs
+# returns the W matrix, the bias and the sigmoid fuction
+def layer(x, n_input, n_output):
+  W = tf.Variable(rd.randn(n_input,n_output),trainable=True)
+  b = tf.Variable(np.zeros(n_output),trainable=True)
+  y = tf.nn.sigmoid(tf.matmul(x,W) + b)
+  return (W, b, y)
 
+# Is like the function layer but we return a softmax function instead of a sigmoid
+def last_layer(x, n_input, n_output):
+  W = tf.Variable(rd.randn(n_input,n_output),trainable=True)
+  b = tf.Variable(np.zeros(n_output),trainable=True)
+  z = tf.nn.softmax(tf.matmul(x,W) + b)
+  return (W, b, z)
 
 print("\n--DATA SET--")
 print("\nWe have 6238 character and classes (each character belongs to a class)")
 print("Each character is represented with 300 attributes ranging between -1 and 1")
 print(isolate_data.shape)
-#print(isolate_data[0])
 
 print("\nEach class is represented by a number between 1 and 26")
 print(isolate_data_class)
@@ -70,33 +78,32 @@ print(isolate_data_class_binary)
 isolate_data = ((isolate_data +1) / 2)
 isolate_test = ((isolate_test +1) / 2)
 
-# look model.fit documentation, you can put bacht dim there
-#300 filas
-#programar 1 neurona (entrada hiden output)
 
-# mini bacth of size 40, with 300 features
-# 300/40 = 7,5 ~ 7 neurons input
+n_input = 300
+num_neuron = 100
 
-#-- TWO LAYERS --
-# First layer connects the data with 7 neurons and the output layer connect the 7 neurons with the 26 classifiers
-W_hid = tf.Variable(rd.randn(300,7),trainable=True)
-b_hid = tf.Variable(np.zeros(7),trainable=True)
+x = tf.placeholder(shape=(None, 300),dtype=tf.float64)
 
-W_out = tf.Variable(rd.randn(7,26),trainable=True)
-b_out = tf.Variable(np.zeros(26),trainable=True)
+#-- 2 LAYERS --
+W_hid , b_hid, y = layer(x, 300, num_neuron)
+W_out , b_out, z = last_layer(y, num_neuron, 26)
 
-# El input de la primera capa, tenemos 300 col, es decir cada "caracter" tiene 300 dimensiones o caracteristicas
-# La dimenson de las filas se inicializa en None pero si queremos recibir mas de un caracter introduciriamos ese numero en vez de None
-x = tf.placeholder(shape=(None,300),dtype=tf.float64)
+#-- 3 LAYERS --
+#W_hid , b_hid, y = layer(x, 300, num_neuron)
+#W_hid2 , b_hid2, y2 = layer(y, num_neuron, num_neuron)
+#W_out , b_out, z = last_layer(y2, num_neuron, 26)
 
-y = tf.nn.sigmoid(tf.matmul(x,W_hid) + b_hid)
-z = tf.nn.softmax(tf.matmul(y,W_out) + b_out)
+#-- 4 LAYERS --
+#W_hid , b_hid, y = layer(x, 300, num_neuron)
+#W_hid2 , b_hid2, y2 = layer(y, num_neuron, num_neuron)
+#W_hid3 , b_hid3, y3 = layer(y2, num_neuron, num_neuron)
+#W_out , b_out, z = last_layer(y3, num_neuron, 26)
 
-# Placeholder
+
 z_ = tf.placeholder(shape=(None,26),dtype=tf.float64)
-cross_entropy = tf.reduce_mean(-tf.reduce_sum(z_ * tf.log(z), reduction_indices=[1]))
 
-train_step = tf.train.GradientDescentOptimizer(0.1).minimize(cross_entropy)
+cross_entropy = tf.reduce_mean(-tf.reduce_sum(z_ * tf.log(z), reduction_indices=[1]))
+train_step = tf.train.GradientDescentOptimizer(0.01).minimize(cross_entropy)
 correct_prediction = tf.equal(tf.argmax(z,1), tf.argmax(z_,1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float64))
 
@@ -119,7 +126,7 @@ k_batch = 40
 X_batch_list = np.array_split(isolate_data,k_batch)
 labels_batch_list = np.array_split(isolate_data_class_binary,k_batch)
 
-for k in range(700):
+for k in range(500):
     # Run gradient steps over each minibatch
     for x_minibatch,labels_minibatch in zip(X_batch_list,labels_batch_list):
         sess.run(train_step, feed_dict={x: x_minibatch, z_:labels_minibatch})
@@ -156,6 +163,8 @@ ax_list[0].set_ylabel('Cross-entropy')
 ax_list[1].set_ylabel('Accuracy')
 plt.legend(loc=2)
 plt.show()
+
+# checkpoont , save summary
 
 
 
