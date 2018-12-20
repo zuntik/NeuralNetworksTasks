@@ -14,27 +14,30 @@ isolate_data, isolate_data_class, isolate_test, isolate_test_class = nn18_ex2_lo
 # Recieves a placeholder x, and the number of inputs and outputs
 # returns the W matrix, the bias and the sigmoid fuction
 def layer(x, n_input, n_output, activation):
-    W = tf.Variable(rd.randn(n_input,n_output),trainable=True)
-    b = tf.Variable(np.zeros(n_output),trainable=True)
-    y = activation(tf.matmul(x,W) + b)
-    return (W, b, y)
+  W = tf.Variable(rd.randn(n_input,n_output),trainable=True)
+  b = tf.Variable(np.zeros(n_output),trainable=True)
+  y = activation(tf.matmul(x,W) + b)
+  return y
 
-def residual_block_layer(x, n, activation1, activation2):
-    # the number of inputs has to equal the number of outputs
-    W1 = tf.Variable(rd.randn(n, n), trainable=True)
-    b1 = tf.Variable(np.zeros(n), trainable=True)
-    W2 = tf.Variable(rd.randn(n, n), trainable=True)
-    b2 = tf.Variable(np.zeros(n), trainable=True)
-    f = activation1(tf.matmul(x,W1) + b1)
-    y = activation2(x + tf.matmul( f , W2) + b2)
-    return (W2, b2, y)
+def residual_block_layer(x, n_input, n_output, activation1, activation2):
+  # the number of inputs has to equal the number of outputs
+  # check if the input and output are the same
+  assert(n_input==n_output)
+  W1 = tf.Variable(rd.randn(n_input, n_output), trainable=True)
+  b1 = tf.Variable(np.zeros(n_output), trainable=True)
+  f = activation1(tf.matmul(x,W1) + b1)
+
+  W2 = tf.Variable(rd.randn(n_input, n_output), trainable=True)
+  b2 = tf.Variable(np.zeros(n_output), trainable=True)
+  y = activation2(x + tf.matmul(f,W2) + b2)
+  return y
 
 # Is like the function layer but we return a softmax function instead of a sigmoid
 def last_layer(x, n_input, n_output):
   W = tf.Variable(rd.randn(n_input,n_output),trainable=True)
   b = tf.Variable(np.zeros(n_output),trainable=True)
   z = tf.nn.softmax(tf.matmul(x,W) + b)
-  return (W, b, z)
+  return z
 
 print("\n--DATA SET--")
 print("\nWe have 6238 character and classes (each character belongs to a class)")
@@ -67,13 +70,13 @@ isolate_test = ((isolate_test +1) / 2)
 x = tf.placeholder(shape=(None, 300),dtype=tf.float64)
 
 #-- 2 LAYERS --
-#W_hid , b_hid, y = layer(x, 300, num_neuron)
-#W_out , b_out, z = last_layer(y, num_neuron, 26)
+#y = layer(x, 300, num_neuron)
+#z = last_layer(y, num_neuron, 26)
 
 #-- 3 LAYERS --
-#W_hid , b_hid, y = layer(x, 300, num_neuron)
-#W_hid2 , b_hid2, y2 = layer(y, num_neuron, num_neuron)
-#W_out , b_out, z = last_layer(y2, num_neuron, 26)
+#y = layer(x, 300, num_neuron)
+#y2 = layer(y, num_neuron, num_neuron)
+#z = last_layer(y2, num_neuron, 26)
 
 #rd.seed(0)
 #W_hid = tf.Variable(rd.randn(300,150),trainable=True)
@@ -91,37 +94,37 @@ x = tf.placeholder(shape=(None, 300),dtype=tf.float64)
 #z = tf.nn.softmax(tf.matmul(y2,W_out) + b_out)
 
 #-- 4 LAYERS --
-#W_hid , b_hid, y = layer(x, 300, num_neuron)
-#W_hid2 , b_hid2, y2 = layer(y, num_neuron, num_neuron)
-#W_hid3 , b_hid3, y3 = layer(y2, num_neuron, 50)
-#W_out , b_out, z = last_layer(y3, 50, 26)
+#y = layer(x, 300, num_neuron)
+#y2 = layer(y, num_neuron, num_neuron)
+#y3 = layer(y2, num_neuron, 50)
+#z = last_layer(y3, 50, 26)
 
 #-- 5 LAYERS --
-#W_hid , b_hid, y = layer(x, 300, 200)
-#W_hid2 , b_hid2, y2 = layer(y, 200, 100)
-#W_hid3 , b_hid3, y3 = layer(y2, 100, 50)
-#W_hid4 , b_hid4, y4 = layer(y3, 50, 26)
-#W_out , b_out, z = last_layer(y4, 26, 26)
+#y = layer(x, 300, 200)
+#y2 = layer(y, 200, 100)
+#y3 = layer(y2, 100, 50)
+#y4 = layer(y3, 50, 26)
+#z = last_layer(y4, 26, 26)
 
 #-- 9 LAYERS --
-#W_hid , b_hid, y =    layer(x, 300, 40, tf.nn.tanh)
-#W_hid2 , b_hid2, y2 = layer(y,  40, 40, tf.nn.tanh)
-#W_hid3 , b_hid3, y3 = layer(y2, 40, 40, tf.nn.tanh)
-#W_hid4 , b_hid4, y4 = layer(y3, 40, 40, tf.nn.tanh)
-#W_hid5 , b_hid5, y5 = layer(y4, 40, 40, tf.nn.tanh)
-#W_hid6 , b_hid6, y6 = layer(y5, 40, 40, tf.nn.tanh)
-#W_hid7 , b_hid7, y7 = layer(y6, 40, 40, tf.nn.tanh)
-#W_hid8 , b_hid8, y8 = layer(y7, 40, 40, tf.nn.tanh)
-#W_out , b_out, z = layer(y8, 40, 26, tf.nn.softmax)
+y = layer(x, 300, 40, tf.nn.tanh)
+y2 = layer(y,  40, 40, tf.nn.tanh)
+y3 = layer(y2, 40, 40, tf.nn.tanh)
+y4 = layer(y3, 40, 40, tf.nn.tanh)
+y5 = layer(y4, 40, 40, tf.nn.tanh)
+y6 = layer(y5, 40, 40, tf.nn.tanh)
+y7 = layer(y6, 40, 40, tf.nn.tanh)
+y8 = layer(y7, 40, 40, tf.nn.tanh)
+z = layer(y8, 40, 26, tf.nn.softmax)
 
 
 #--relu + resnet 
-W_hid, b_hid, y = layer(x,300, 40, tf.nn.relu)
-W_hid3, b_hid3, y3 = residual_block_layer(y, 40,  tf.nn.relu, tf.nn.relu)
-W_hid5, b_hid3, y5 = residual_block_layer(y3, 40, tf.nn.relu, tf.nn.relu)
-W_hid7, b_hid3, y7 = residual_block_layer(y5, 40, tf.nn.relu, tf.nn.relu)
-W_hid9, b_hid5, y9 = residual_block_layer(y7, 40, tf.nn.relu, tf.nn.relu)
-W_out, b_out, z = layer(y9, 40, 26, tf.nn.softmax)
+#y = layer(x,300, 40, tf.nn.relu)
+#y2 = residual_block_layer(y, 40, 40,  tf.nn.relu, tf.nn.relu)
+#y3 = residual_block_layer(y2, 40, 40, tf.nn.relu, tf.nn.relu)
+#y4 = residual_block_layer(y3, 40, 40, tf.nn.relu, tf.nn.relu)
+#y5 = residual_block_layer(y4, 40, 40, tf.nn.relu, tf.nn.relu)
+#z = layer(y5, 40, 26, tf.nn.softmax)
 
 
 z_ = tf.placeholder(shape=(None,26),dtype=tf.float64)
@@ -179,10 +182,6 @@ for k in range(700):
         #print('iteration {} test loss: {:.3f}'.format(k+1,test_loss))
         print('iteration {} train accuracy: {:.3f}'.format(k+1,train_acc))
         #print('iteration {} train loss: {:.3f}'.format(k+1,train_loss))
-
-
-
-
 
 
 fig,ax_list = plt.subplots(1,2)
