@@ -14,10 +14,20 @@ isolate_data, isolate_data_class, isolate_test, isolate_test_class = nn18_ex2_lo
 # Recieves a placeholder x, and the number of inputs and outputs
 # returns the W matrix, the bias and the sigmoid fuction
 def layer(x, n_input, n_output, activation):
-  W = tf.Variable(rd.randn(n_input,n_output),trainable=True)
-  b = tf.Variable(np.zeros(n_output),trainable=True)
-  y = activation(tf.matmul(x,W) + b)
-  return (W, b, y)
+    W = tf.Variable(rd.randn(n_input,n_output),trainable=True)
+    b = tf.Variable(np.zeros(n_output),trainable=True)
+    y = activation(tf.matmul(x,W) + b)
+    return (W, b, y)
+
+def residual_block_layer(x, n, activation1, activation2):
+    # the number of inputs has to equal the number of outputs
+    W1 = tf.Variable(rd.randn(n, n), trainable=True)
+    b1 = tf.Variable(np.zeros(n), trainable=True)
+    W2 = tf.Variable(rd.randn(n, n), trainable=True)
+    b2 = tf.Variable(np.zeros(n), trainable=True)
+    f = tf.matmul(x,W1) + b1
+    y = activation2(x + tf.matmul( f , W2) + b2)
+    return (W2, b2, y)
 
 # Is like the function layer but we return a softmax function instead of a sigmoid
 def last_layer(x, n_input, n_output):
@@ -103,6 +113,9 @@ W_hid6 , b_hid6, y6 = layer(y5, 40, 40, tf.nn.tanh)
 W_hid7 , b_hid7, y7 = layer(y6, 40, 40, tf.nn.tanh)
 W_hid8 , b_hid8, y8 = layer(y7, 40, 40, tf.nn.tanh)
 W_out , b_out, z = last_layer(y8, 40, 26)
+
+
+#--relu + resnet 
 
 
 z_ = tf.placeholder(shape=(None,26),dtype=tf.float64)
