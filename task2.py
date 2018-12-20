@@ -1,219 +1,172 @@
-import tensorflow as tf
+# Authors         MatrikulNumber 
+# Javier Bezares  11805954
+# Thomas Berry    11806027
 
-# Helper libraries
+
+import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-import itertools
+import numpy.random as rd
+import nn18_ex2_load
 
-# Data
-# Character a...z
-# 26 classes
+isolate_data, isolate_data_class, isolate_test, isolate_test_class = nn18_ex2_load.load_isolet()
 
-def load_isolet():
-  # Loads the isolet dataset
-  # Returns:
-  # X....feature vectors (training set), X[i,:] is the i-th example
-  # C....target classes
-  # X_tst...feature vectors (test set)
-  # C_tst...classes (test set)
-  
-  import pickle as pckl  # to load dataset
-  import pylab as pl     # for graphics
-  #from numpy import *    
+# Recieves a placeholder x, and the number of inputs and outputs
+# returns the W matrix, the bias and the sigmoid fuction
+def layer(x, n_input, n_output):
+  W = tf.Variable(rd.randn(n_input,n_output),trainable=True)
+  b = tf.Variable(np.zeros(n_output),trainable=True)
+  y = tf.nn.sigmoid(tf.matmul(x,W) + b)
+  return (W, b, y)
 
-  pl.close('all')   # closes all previous figures
+# Is like the function layer but we return a softmax function instead of a sigmoid
+def last_layer(x, n_input, n_output):
+  W = tf.Variable(rd.randn(n_input,n_output),trainable=True)
+  b = tf.Variable(np.zeros(n_output),trainable=True)
+  z = tf.nn.softmax(tf.matmul(x,W) + b)
+  return (W, b, z)
 
-  # Load dataset
-  file_in = open('isolet_crop_train.pkl','rb')
-  isolet_data = pckl.load(file_in) # Python 3
-  #isolet_data = pckl.load(file_in, encoding='bytes') # Python 3
-  file_in.close()
-  X = isolet_data[0]   # input vectors X[i,:] is i-th example
-  C = isolet_data[1]   # c.lasses C[i] is class of i-th example
+print("\n--DATA SET--")
+print("\nWe have 6238 character and classes (each character belongs to a class)")
+print("Each character is represented with 300 attributes ranging between -1 and 1")
+print(isolate_data.shape)
 
-  file_in = open('isolet_crop_test.pkl','rb')
-  isolet_test = pckl.load(file_in) # Python 3
-  file_in.close()
+print("\nEach class is represented by a number between 1 and 26")
+print(isolate_data_class)
 
-  X_tst = isolet_test[0]   # input vectors X[i,:] is i-th example
-  C_tst = isolet_test[1]   # classes C[i] is class of i-th example
-
-  return (X, C, X_tst, C_tst)
-
-isolate_data, isolate_data_class, isolate_test, isolate_test_class = load_isolet()
-
-
-
+print("\n--TEST SET--")
+print("\nWe have 1559 characters and classes, we have 300 attributes")
+print(isolate_test.shape)
 
 # To train the network we have to convert the classes in one out of 26 vectors
-# We pass the previos data and write the dimension of the new vector (26 values per vector)
 isolate_data_class_binary = np.eye(26)[isolate_data_class-1]
 isolate_test_class_binary = np.eye(26)[isolate_test_class-1]
 # Now we have 1559 binary vectors each one with a range from 1 to 26
+print(isolate_data_class_binary)
 
 
 #--Normalize data--
 # normalize_data = (data - min(data)) / (max(data) - min(data))
 isolate_data = ((isolate_data +1) / 2)
-
-# look model.fit documentation, you can put bacht dim there
-
-# the number of attributes is analogous the number of pixels of an input image
-num_attributes = isolate_test.shape[1]
-# one class per leter
-num_classes = isolate_data_class_binary.shape[1]
+isolate_test = ((isolate_test +1) / 2)
 
 
-###############################################################################
-# Define the network
-###############################################################################
-# There we define the number of hidden layers as well as the number of nodes
-# each hidden layer has
-# user input is only here
-# uncomment the network to use
-# notes:
-#     y is always the last layer and x is always the first for the rest
-#     of the code to work
-###############################################################################
-# basic scenario: one layer and cross entropy 
 
-# W = tf.Variable(np.random.randn(num_attributes,num_classes), trainable=True)
-# b = tf.Variable(np.zeros(num_classes),trainable=True)
-# 
-# # define how to link the variables
-# x = tf.placeholder(shape=(None,num_attributes),dtype=tf.float64)
-# y = tf.nn.softmax(tf.matmul(x,W) + b)
+num_neuron = 150
 
-# 2 layers scenario
-# the number of neuros of the hidden layer is the only thing we can change
+x = tf.placeholder(shape=(None, 300),dtype=tf.float64)
 
-num_hidden_neurons = 26
- 
-W = tf.Variable(np.random.randn(num_attributes,num_hidden_neurons), trainable=True)
-b = tf.Variable(np.zeros(num_hidden_neurons),trainable=True)
+#-- 2 LAYERS --
+#W_hid , b_hid, y = layer(x, 300, num_neuron)
+#W_out , b_out, z = last_layer(y, num_neuron, 26)
 
-W_out = tf.Variable(np.random.randn(num_hidden_neurons, num_classes) ,trainable=True)
-b_out = tf.Variable(np.zeros(num_classes) ,trainable=True)
+#-- 3 LAYERS --
+#W_hid , b_hid, y = layer(x, 300, num_neuron)
+#W_hid2 , b_hid2, y2 = layer(y, num_neuron, num_neuron)
+#W_out , b_out, z = last_layer(y2, num_neuron, 26)
 
-x = tf.placeholder(shape=(None,num_attributes),dtype=tf.float64)
-z = tf.nn.tanh(tf.matmul(x,W) + b)
-y = tf.nn.softmax(tf.matmul(z,W_out) + b_out )
+rd.seed(0)
+W_hid = tf.Variable(rd.randn(300,150),trainable=True)
+b_hid = tf.Variable(np.zeros(150),trainable=True)
+y = tf.nn.sigmoid(tf.matmul(x,W_hid) + b_hid)
 
-# 3 layers scenario
+rd.seed(1)
+W_hid2 = tf.Variable(rd.randn(150,150),trainable=True)
+b_hid2 = tf.Variable(np.zeros(150),trainable=True)
+y2 = tf.nn.sigmoid(tf.matmul(y,W_hid2) + b_hid2)
 
-# the number of neuros of the hidden layer is the only thing we can change
-# num_hidden_neurons = 100
-# num_hidden_neurons2 = 50
-# 
-# W = tf.Variable(np.random.randn(num_attributes,num_hidden_neurons), trainable=True)
-# b = tf.Variable(np.zeros(num_hidden_neurons),trainable=True)
-# 
-# W_mid = tf.Variable(np.random.randn(num_hidden_neurons, num_hidden_neurons2) ,trainable=True)
-# b_mid = tf.Variable(np.zeros(num_hidden_neurons2) ,trainable=True)
-# 
-# W_out = tf.Variable(np.random.randn(num_hidden_neurons2, num_classes) ,trainable=True)
-# b_out = tf.Variable(np.zeros(num_classes) ,trainable=True)
-# 
-# x = tf.placeholder(shape=(None,num_attributes),dtype=tf.float64)
-# z = tf.nn.tanh(tf.matmul(x,W) + b)
-# w = tf.nn.tanh(tf.matmul(z,W_mid + b_mid))
-# y = tf.nn.softmax(tf.matmul(w,W_out) + b_out)
+rd.seed(2)
+W_out = tf.Variable(rd.randn(150,26),trainable=True)
+b_out = tf.Variable(np.zeros(26),trainable=True)
+z = tf.nn.softmax(tf.matmul(y2,W_out) + b_out)
 
-# 4 layers scenario - it is bad
-# num_hidden_neurons = 100
-# num_hidden_neurons2 = 85
-# num_hidden_neurons3 = 50
-# 
-# W = tf.Variable(np.random.randn(num_attributes,num_hidden_neurons), trainable=True)
-# b = tf.Variable(np.zeros(num_hidden_neurons),trainable=True)
-# 
-# W_mid = tf.Variable(np.random.randn(num_hidden_neurons, num_hidden_neurons2) ,trainable=True)
-# b_mid = tf.Variable(np.zeros(num_hidden_neurons2) ,trainable=True)
-# 
-# W_mid2 = tf.Variable(np.random.randn(num_hidden_neurons2, num_hidden_neurons3) ,trainable=True)
-# b_mid2 = tf.Variable(np.zeros(num_hidden_neurons3) ,trainable=True)
-# 
-# W_out = tf.Variable(np.random.randn(num_hidden_neurons3, num_classes) ,trainable=True)
-# b_out = tf.Variable(np.zeros(num_classes) ,trainable=True)
-# 
-# x = tf.placeholder(shape=(None,num_attributes),dtype=tf.float64)
-# z = tf.nn.tanh(tf.matmul(x,W) + b)
-# w = tf.nn.tanh(tf.matmul(z,W_mid + b_mid))
-# v = tf.nn.tanh(tf.matmul(w,W_mid2 + b_mid2))
-# y = tf.nn.softmax(tf.matmul(v,W_out) + b_out)
+#-- 4 LAYERS --
+#W_hid , b_hid, y = layer(x, 300, num_neuron)
+#W_hid2 , b_hid2, y2 = layer(y, num_neuron, num_neuron)
+#W_hid3 , b_hid3, y3 = layer(y2, num_neuron, 50)
+#W_out , b_out, z = last_layer(y3, 50, 26)
+
+#-- 5 LAYERS --
+#W_hid , b_hid, y = layer(x, 300, 200)
+#W_hid2 , b_hid2, y2 = layer(y, 200, 100)
+#W_hid3 , b_hid3, y3 = layer(y2, 100, 50)
+#W_hid4 , b_hid4, y4 = layer(y3, 50, 26)
+#W_out , b_out, z = last_layer(y4, 26, 26)
 
 
-###############################################################################
+z_ = tf.placeholder(shape=(None,26),dtype=tf.float64)
 
-
-y_ = tf.placeholder(shape=(None,num_classes),dtype=tf.float64)
-cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
-
-train_step = tf.train.GradientDescentOptimizer(1).minimize(cross_entropy) 
-
-
-# Create an op that will initialize the variable on demand
-init = tf.global_variables_initializer()
-sess = tf.Session()
-
-
-correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+cross_entropy = tf.reduce_mean(-tf.reduce_sum(z_ * tf.log(z), reduction_indices=[1]))
+train_step = tf.train.GradientDescentOptimizer(0.01).minimize(cross_entropy)
+correct_prediction = tf.equal(tf.argmax(z,1), tf.argmax(z_,1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float64))
 
-# init the variables to start
+# We create a variable for later initialize all variables
+init = tf.initialize_all_variables()
+# Create the session
+sess = tf.Session()
+# Re init variables to start from scratch
 sess.run(init)
 
-# Create lists for monitoring
-test_error_list = []
-train_error_list = []
+# Create some list to monitor how error decreases
+test_loss_list = []
+train_loss_list = []
 
 test_acc_list = []
 train_acc_list = []
 
-# we must apply the stochastic gradient descent
+# Create minibtaches to train faster
+k_batch = 40
+X_batch_list = np.array_split(isolate_data,k_batch)
+labels_batch_list = np.array_split(isolate_data_class_binary,k_batch)
 
-# doing number of examples / number of batches iterations will not be enough
-# to get a sufficiently small error so we must iterate over the batches several
-# times
-num_iterations = 200
-size_of_a_batch = 40
-
-X_batch_list = np.array_split(isolate_data, size_of_a_batch)
-labels_batch_list = np.array_split(isolate_data_class_binary, size_of_a_batch)
-
-for _ in itertools.repeat(None, num_iterations):
-
+for k in range(20000):
     # Run gradient steps over each minibatch
     for x_minibatch,labels_minibatch in zip(X_batch_list,labels_batch_list):
-        sess.run(train_step, feed_dict={x: x_minibatch, y_:labels_minibatch})# Compute a gradient step
-
+        sess.run(train_step, feed_dict={x: x_minibatch, z_:labels_minibatch})
+        
     # Compute the errors over the whole dataset
-    train_err = sess.run(cross_entropy, feed_dict={x:isolate_data, y_:isolate_data_class_binary})
-    test_err = sess.run(cross_entropy, feed_dict={x:isolate_test, y_:isolate_test_class_binary})
+    train_loss = sess.run(cross_entropy, feed_dict={x:isolate_data, z_:isolate_data_class_binary})
+    test_loss = sess.run(cross_entropy, feed_dict={x:isolate_test, z_:isolate_test_class_binary})
     
     # Compute the acc over the whole dataset
-    train_acc = sess.run(accuracy, feed_dict={x:isolate_data, y_:isolate_data_class_binary})
-    test_acc = sess.run(accuracy, feed_dict={x:isolate_test, y_:isolate_test_class_binary})
+    train_acc = sess.run(accuracy, feed_dict={x:isolate_data, z_:isolate_data_class_binary})
+    test_acc = sess.run(accuracy, feed_dict={x:isolate_test, z_:isolate_test_class_binary})
+    
+    if test_loss_list != []:
+      if  test_loss > test_loss_list[-1]:
+        break
 
     # Put it into the lists
-    test_error_list.append(test_err)
-    train_error_list.append(train_err)
+    test_loss_list.append(test_loss)
+    train_loss_list.append(train_loss)
     test_acc_list.append(test_acc)
     train_acc_list.append(train_acc)
+    
+    if np.mod(k,100) == 0:
+        print('iteration {} test accuracy: {:.3f}'.format(k+1,test_acc))
+        print('iteration {} test loss: {:.3f}'.format(k+1,test_loss))
+        print('iteration {} train accuracy: {:.3f}'.format(k+1,train_acc))
+        print('iteration {} train loss: {:.3f}'.format(k+1,train_loss))
+
+
+
+
 
 
 fig,ax_list = plt.subplots(1,2)
-ax_list[0].plot(train_error_list, color='blue', label='training', lw=2)
-ax_list[0].plot(test_error_list, color='green', label='testing', lw=2)
+ax_list[0].plot(train_loss_list, color='blue', label='training', lw=2)
+ax_list[0].plot(test_loss_list, color='green', label='testing', lw=2)
 ax_list[1].plot(train_acc_list, color='blue', label='training', lw=2)
 ax_list[1].plot(test_acc_list, color='green', label='testing', lw=2)
 
-ax_list[0].set_title('Cross-entropy')
-ax_list[0].set_xlabel('Training epoch')
+ax_list[0].set_xlabel('training iterations')
+ax_list[1].set_xlabel('training iterations')
 ax_list[0].set_ylabel('Cross-entropy')
-ax_list[1].set_title('Accuracy')
-ax_list[1].set_xlabel('Training epoch')
 ax_list[1].set_ylabel('Accuracy')
 plt.legend(loc=2)
-
 plt.show()
+
+
+
+
