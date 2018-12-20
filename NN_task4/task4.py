@@ -117,10 +117,11 @@ x = tf.placeholder(shape=(None, 300),dtype=tf.float64)
 
 #--relu + resnet 
 W_hid, b_hid, y = layer(x,300, 40, tf.nn.relu)
-W_hid3, b_hid3, y3 = residual_block_layer(y, 40, tf.nn.relu)
-W_hid5, b_hid3, y5 = residual_block_layer(y3, 40, tf.nn.relu)
-W_hid7, b_hid3, y7 = residual_block_layer(y5, 40, tf.nn.relu)
-
+W_hid3, b_hid3, y3 = residual_block_layer(y, 40,  tf.nn.relu, tf.nn.relu)
+W_hid5, b_hid3, y5 = residual_block_layer(y3, 40, tf.nn.relu, tf.nn.relu)
+W_hid7, b_hid3, y7 = residual_block_layer(y5, 40, tf.nn.relu, tf.nn.relu)
+W_hid9, b_hid5, y9 = residual_block_layer(y7, 40, tf.nn.relu, tf.nn.relu)
+W_out, b_out, z = layer(y9, 40, 26, tf.nn.softmax)
 
 
 z_ = tf.placeholder(shape=(None,26),dtype=tf.float64)
