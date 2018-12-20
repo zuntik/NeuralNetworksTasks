@@ -25,7 +25,7 @@ def residual_block_layer(x, n, activation1, activation2):
     b1 = tf.Variable(np.zeros(n), trainable=True)
     W2 = tf.Variable(rd.randn(n, n), trainable=True)
     b2 = tf.Variable(np.zeros(n), trainable=True)
-    f = tf.matmul(x,W1) + b1
+    f = activation1(tf.matmul(x,W1) + b1)
     y = activation2(x + tf.matmul( f , W2) + b2)
     return (W2, b2, y)
 
@@ -104,18 +104,23 @@ x = tf.placeholder(shape=(None, 300),dtype=tf.float64)
 #W_out , b_out, z = last_layer(y4, 26, 26)
 
 #-- 9 LAYERS --
-W_hid , b_hid, y =    layer(x, 300, 40, tf.nn.tanh)
-W_hid2 , b_hid2, y2 = layer(y,  40, 40, tf.nn.tanh)
-W_hid3 , b_hid3, y3 = layer(y2, 40, 40, tf.nn.tanh)
-W_hid4 , b_hid4, y4 = layer(y3, 40, 40, tf.nn.tanh)
-W_hid5 , b_hid5, y5 = layer(y4, 40, 40, tf.nn.tanh)
-W_hid6 , b_hid6, y6 = layer(y5, 40, 40, tf.nn.tanh)
-W_hid7 , b_hid7, y7 = layer(y6, 40, 40, tf.nn.tanh)
-W_hid8 , b_hid8, y8 = layer(y7, 40, 40, tf.nn.tanh)
-W_out , b_out, z = last_layer(y8, 40, 26)
+#W_hid , b_hid, y =    layer(x, 300, 40, tf.nn.tanh)
+#W_hid2 , b_hid2, y2 = layer(y,  40, 40, tf.nn.tanh)
+#W_hid3 , b_hid3, y3 = layer(y2, 40, 40, tf.nn.tanh)
+#W_hid4 , b_hid4, y4 = layer(y3, 40, 40, tf.nn.tanh)
+#W_hid5 , b_hid5, y5 = layer(y4, 40, 40, tf.nn.tanh)
+#W_hid6 , b_hid6, y6 = layer(y5, 40, 40, tf.nn.tanh)
+#W_hid7 , b_hid7, y7 = layer(y6, 40, 40, tf.nn.tanh)
+#W_hid8 , b_hid8, y8 = layer(y7, 40, 40, tf.nn.tanh)
+#W_out , b_out, z = layer(y8, 40, 26, tf.nn.softmax)
 
 
 #--relu + resnet 
+W_hid, b_hid, y = layer(x,300, 40, tf.nn.relu)
+W_hid3, b_hid3, y3 = residual_block_layer(y, 40, tf.nn.relu)
+W_hid5, b_hid3, y5 = residual_block_layer(y3, 40, tf.nn.relu)
+W_hid7, b_hid3, y7 = residual_block_layer(y5, 40, tf.nn.relu)
+
 
 
 z_ = tf.placeholder(shape=(None,26),dtype=tf.float64)
