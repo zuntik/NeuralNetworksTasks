@@ -13,10 +13,10 @@ isolate_data, isolate_data_class, isolate_test, isolate_test_class = nn18_ex2_lo
 
 # Recieves a placeholder x, and the number of inputs and outputs
 # returns the W matrix, the bias and the sigmoid fuction
-def layer(x, n_input, n_output):
+def layer(x, n_input, n_output, activation):
   W = tf.Variable(rd.randn(n_input,n_output),trainable=True)
   b = tf.Variable(np.zeros(n_output),trainable=True)
-  y = tf.nn.tanh(tf.matmul(x,W) + b)
+  y = activation(tf.matmul(x,W) + b)
   return (W, b, y)
 
 # Is like the function layer but we return a softmax function instead of a sigmoid
@@ -94,14 +94,14 @@ x = tf.placeholder(shape=(None, 300),dtype=tf.float64)
 #W_out , b_out, z = last_layer(y4, 26, 26)
 
 #-- 9 LAYERS --
-W_hid , b_hid, y = layer(x, 300, 40)
-W_hid2 , b_hid2, y2 = layer(y, 40, 40)
-W_hid3 , b_hid3, y3 = layer(y2, 40, 40)
-W_hid4 , b_hid4, y4 = layer(y3, 40, 40)
-W_hid5 , b_hid5, y5 = layer(y4, 40, 40)
-W_hid6 , b_hid6, y6 = layer(y5, 40, 40)
-W_hid7 , b_hid7, y7 = layer(y6, 40, 40)
-W_hid8 , b_hid8, y8 = layer(y7, 40, 40)
+W_hid , b_hid, y =    layer(x, 300, 40, tf.nn.tanh)
+W_hid2 , b_hid2, y2 = layer(y,  40, 40, tf.nn.tanh)
+W_hid3 , b_hid3, y3 = layer(y2, 40, 40, tf.nn.tanh)
+W_hid4 , b_hid4, y4 = layer(y3, 40, 40, tf.nn.tanh)
+W_hid5 , b_hid5, y5 = layer(y4, 40, 40, tf.nn.tanh)
+W_hid6 , b_hid6, y6 = layer(y5, 40, 40, tf.nn.tanh)
+W_hid7 , b_hid7, y7 = layer(y6, 40, 40, tf.nn.tanh)
+W_hid8 , b_hid8, y8 = layer(y7, 40, 40, tf.nn.tanh)
 W_out , b_out, z = last_layer(y8, 40, 26)
 
 
