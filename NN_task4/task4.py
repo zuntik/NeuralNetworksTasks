@@ -110,33 +110,33 @@ X_batch_list = np.array_split(isolate_data,k_batch)
 labels_batch_list = np.array_split(isolate_data_class_binary,k_batch)
 
 for k in range(1500):
-    # Run gradient steps over each minibatch
-    for x_minibatch,labels_minibatch in zip(X_batch_list,labels_batch_list):
-        sess.run(train_step, feed_dict={x: x_minibatch, z_:labels_minibatch})
+  # Run gradient steps over each minibatch
+  for x_minibatch,labels_minibatch in zip(X_batch_list,labels_batch_list):
+      sess.run(train_step, feed_dict={x: x_minibatch, z_:labels_minibatch})
         
-    # Compute the errors over the whole dataset
-    train_loss = sess.run(cross_entropy, feed_dict={x:isolate_data, z_:isolate_data_class_binary})
-    test_loss = sess.run(cross_entropy, feed_dict={x:isolate_test, z_:isolate_test_class_binary})
+  # Compute the errors over the whole dataset
+  train_loss = sess.run(cross_entropy, feed_dict={x:isolate_data, z_:isolate_data_class_binary})
+  test_loss = sess.run(cross_entropy, feed_dict={x:isolate_test, z_:isolate_test_class_binary})
     
-    # Compute the acc over the whole dataset
-    train_acc = sess.run(accuracy, feed_dict={x:isolate_data, z_:isolate_data_class_binary})
-    test_acc = sess.run(accuracy, feed_dict={x:isolate_test, z_:isolate_test_class_binary})
+  # Compute the acc over the whole dataset
+  train_acc = sess.run(accuracy, feed_dict={x:isolate_data, z_:isolate_data_class_binary})
+  test_acc = sess.run(accuracy, feed_dict={x:isolate_test, z_:isolate_test_class_binary})
     
-    #if test_loss_list != []:
-      #if  test_loss > test_loss_list[-1]:
-        #break
+  #if test_loss_list != []:
+    #if  test_loss > test_loss_list[-1]:
+      #break
 
-    # Put it into the lists
-    test_loss_list.append(test_loss)
-    train_loss_list.append(train_loss)
-    test_acc_list.append(test_acc)
-    train_acc_list.append(train_acc)
+  # Put it into the lists
+  test_loss_list.append(test_loss)
+  train_loss_list.append(train_loss)
+  test_acc_list.append(test_acc)
+  train_acc_list.append(train_acc)
     
-    if np.mod(k,100) == 0:
-        print('iteration {} test accuracy: {:.3f}'.format(k+1,test_acc))
-        #print('iteration {} test loss: {:.3f}'.format(k+1,test_loss))
-        print('iteration {} train accuracy: {:.3f}'.format(k+1,train_acc))
-        #print('iteration {} train loss: {:.3f}'.format(k+1,train_loss))
+  if np.mod(k,100) == 0:
+    print('iteration {} test accuracy: {:.3f}'.format(k+1,test_acc))
+    #print('iteration {} test loss: {:.3f}'.format(k+1,test_loss))
+    print('iteration {} train accuracy: {:.3f}'.format(k+1,train_acc))
+    #print('iteration {} train loss: {:.3f}'.format(k+1,train_loss))
 
 
 fig,ax_list = plt.subplots(1,2)
