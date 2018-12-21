@@ -23,11 +23,11 @@ def residual_block_layer(x, n_input, n_output, activation1, activation2):
   # the number of inputs has to equal the number of outputs
   # check if the input and output are the same
   assert(n_input==n_output)
-  W1 = tf.Variable( rd.randn(n_input, n_output)/np.sqrt(300) , trainable=True)
+  W1 = tf.Variable( rd.randn(n_input, n_output)/np.sqrt(n_input), trainable=True)
   b1 = tf.Variable(np.zeros(n_output), trainable=True)
   f = activation1(tf.matmul(x,W1) + b1)
 
-  W2 = tf.Variable(rd.randn(n_input, n_output), trainable=True)
+  W2 = tf.Variable(rd.randn(n_input, n_output)/np.sqrt(n_input), trainable=True)
   b2 = tf.Variable(np.zeros(n_output), trainable=True)
   y = activation2(x + tf.matmul(f,W2) + b2)
   return y
@@ -64,7 +64,7 @@ x = tf.placeholder(shape=(None, 300),dtype=tf.float64)
 
 #-- 9 LAYERS --
 #y = layer(x, 300, 40, tf.nn.tanh)
-#y2 = layer(y,  40, 40, tf.nn.tanh)
+#y2 = layer(y, 40, 40, tf.nn.tanh)
 #y3 = layer(y2, 40, 40, tf.nn.tanh)
 #y4 = layer(y3, 40, 40, tf.nn.tanh)
 #y5 = layer(y4, 40, 40, tf.nn.tanh)
@@ -86,7 +86,7 @@ z = layer(y5, 40, 26, tf.nn.softmax)
 z_ = tf.placeholder(shape=(None,26),dtype=tf.float64)
 
 cross_entropy = tf.reduce_mean(-tf.reduce_sum(z_ * tf.log(z), reduction_indices=[1]))
-train_step = tf.train.AdamOptimizer(0.00001).minimize(cross_entropy)
+train_step = tf.train.AdamOptimizer(0.001).minimize(cross_entropy)
 correct_prediction = tf.equal(tf.argmax(z,1), tf.argmax(z_,1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float64))
 
@@ -109,7 +109,7 @@ k_batch = 20
 X_batch_list = np.array_split(isolate_data,k_batch)
 labels_batch_list = np.array_split(isolate_data_class_binary,k_batch)
 
-for k in range(1500):
+for k in range(1000):
   # Run gradient steps over each minibatch
   for x_minibatch,labels_minibatch in zip(X_batch_list,labels_batch_list):
       sess.run(train_step, feed_dict={x: x_minibatch, z_:labels_minibatch})
