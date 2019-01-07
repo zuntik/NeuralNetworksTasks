@@ -5,64 +5,97 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-import random
 
-from data_generator import generate_data
-
-tf.reset_default_graph()  # for iPython convenience
+from grammar import *
 
 # ----------------------------------------------------------------------
 # parameters
 
-sequence_length = 20
-num_train, num_valid, num_test = 2000, 500, 500
+# sequence_length is no longer necessary
+#sequence_length = 20
+num_train, num_valid, num_test = 5000, 500, 500
 
 #cell_type = 'simple'
 #cell_type = 'gru'
 cell_type = 'lstm'
+# out number of hidden units is 14 not 20
 num_hidden = 20
 
-batch_size = 40
+# the batch size for the stochastic gradient descent is not defined, for now it
+# can be 10% of the total, 50
+batch_size = 50
+# learning rate is not defined, for now it can be original
 learning_rate = 0.01
+# max epoch is not defined, for now it can be original
+# max epoch is necessary because the error may never be small enough on the
+# validadtion samples
 max_epoch = 200
 
 # ----------------------------------------------------------------------
 
-# Generate delayed XOR samples
-X_train, y_train = generate_data(num_train, sequence_length)
-sl_train = sequence_length * np.ones(num_train) # NEW
+# Data generation
 
-X_valid, y_valid = generate_data(num_valid, sequence_length)
-sl_valid = sequence_length * np.ones(num_valid) # NEW
 
-X_test, y_test = generate_data(num_test, sequence_length)
-sl_test = sequence_length * np.ones(num_test) # NEW
+## Generate delayed XOR samples
+#X_train, y_train = generate_data(num_train, sequence_length)
+#sl_train = sequence_length * np.ones(num_train) # NEW
+#
+#X_valid, y_valid = generate_data(num_valid, sequence_length)
+#sl_valid = sequence_length * np.ones(num_valid) # NEW
+#
+#X_test, y_test = generate_data(num_test, sequence_length)
+#sl_test = sequence_length * np.ones(num_test) # NEW
 
-# Crop data
-# Artificially define variable sequence lengths
-# for demo-purposes
-for i in range(num_train):
-    ll = 10+random.randint(0,sequence_length-10)
-    sl_train[i] = ll
+words = [ make_embedded_reber() for i in range(num_train + num_valid + num_test) ]
+max_len = len(max(words,key=len))
+sl, words_one_hot, next_chars_one_hot = zip(*[ \
+        (len(i) ,\
+        np.pad(str_to_vec(i),((0,max_len-len(i)),(0,0)),mode='constant'), \
+        np.pad(str_to_next_embed(i),((0,max_len-len(i)),(0,0)),mode='constant')) \
+        for i in words ])
 
-for i in range(num_valid):
-    ll = 10+random.randint(0,sequence_length-10)
-    sl_valid[i] = ll
+X_train = np.array( words_one_hot[0:num_train] )
+y_train = np.array( next_chars_one_hot[0:num_train] )
+sl_train = sl[0:num_train]
+X_valid = np.array( words_one_hot[num_train:num_train+num_valid] )
+y_valid = np.array( next_chars_one_hot[num_train:num_train+num_valid] )
+sl_valid = sl[num_train: num_train+num_valid]
+X_test = np.array( words_one_hot[-num_test:] )
+y_test = np.array( next_chars_one_hot[-num_test:] )
+sl_test = sl[-num_test:]
 
-for i in range(num_test):
-    ll = 10+random.randint(0,sequence_length-10)
-    sl_test[i] = ll
+
+# not related
+# # Crop data
+# # Artificially define variable sequence lengths
+# # for demo-purposes
+# for i in range(num_train):
+#     ll = 10+random.randint(0,sequence_length-10)
+#     sl_train[i] = ll
+# 
+# for i in range(num_valid):
+#     ll = 10+random.randint(0,sequence_length-10)
+#     sl_valid[i] = ll
+# 
+# for i in range(num_test):
+#     ll = 10+random.randint(0,sequence_length-10)
+#     sl_test[i] = ll
 
 # placeholder for the sequence length of the examples
 seq_length = tf.placeholder(tf.int32, [None])
 
 # input tensor shape: number of examples, input length, dimensionality of each input
 # at every time step, one bit is shown to the network
-X = tf.placeholder(tf.float32, [None, sequence_length, 1])
+# we one hotted the data, so the output has 7
+# X = tf.placeholder(tf.float32, [None, sequence_length, 1])
+X = tf.placeholder(tf.float32, [None, max_len, 7])
 
 # output tensor shape: number of examples, dimensionality of each output
 # Binary output at end of sequence
-y = tf.placeholder(tf.float32, [None, 1])
+# in our exercise we have a "many to many" scenario and each output 
+# is a vector
+# y = tf.placeholder(tf.float32, [None, 1])
+y = tf.placeholder(tf.float32, [None, max_len, 7])
 
 # define recurrent layer
 if cell_type == 'simple':
@@ -87,8 +120,10 @@ outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32, sequence_length=s
 # Returns:
 # outputs: The RNN output Tensor shaped: [batch_size, max_time, cell.output_size].
 
+# the following extraction is useless for  our case because we want the output
+# for every time step
 # get the unit outputs at the last time step
-last_outputs = outputs[:,-1,:]
+#last_outputs = outputs[:,-1,:]
 
 # add output neuron
 y_dim = int(y.shape[1])
@@ -99,6 +134,11 @@ y_pred = tf.nn.xw_plus_b(last_outputs, w, b)
 # Matrix multiplication with bias
 
 # define loss, minimizer and error
+# not done yet but the cross_entropy will have to be redefined to include error
+#  for all of the time steps
+# also, the argument of this sigmoid_cross_entropy_with_logits function will
+#  probably have to be the output of the
+#  tensorflow.contrib.rnn.OutputProjectionWrapper function
 cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred, labels=y)
 train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
 
