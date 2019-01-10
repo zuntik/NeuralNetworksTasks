@@ -11,6 +11,9 @@ from grammar import *
 # ----------------------------------------------------------------------
 # parameters
 
+# dimetion of the one hot letters is 7 
+y_dim = 7
+
 # sequence_length is no longer necessary
 #sequence_length = 20
 num_train, num_valid, num_test = 5000, 500, 500
@@ -18,7 +21,7 @@ num_train, num_valid, num_test = 5000, 500, 500
 #cell_type = 'simple'
 #cell_type = 'gru'
 cell_type = 'lstm'
-# out number of hidden units is 14 not 20
+# our number of hidden units is 14 not 20
 num_hidden = 20
 
 # the batch size for the stochastic gradient descent is not defined, for now it
@@ -111,6 +114,8 @@ else:
 # Activation function can be defined as second argument.
 # Standard activation function is tanh for BasicRNN and GRU
 
+# we want to a trainable output layer 
+cell = tensorflow.contrib.rnn.OutputProjectionWrapper(cell, y_dim)
 
 # only use outputs, ignore states
 outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32, sequence_length=seq_length) # NEW
@@ -126,20 +131,24 @@ outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32, sequence_length=s
 #last_outputs = outputs[:,-1,:]
 
 # add output neuron
-y_dim = int(y.shape[1])
-w = tf.Variable(tf.truncated_normal([num_hidden, y_dim]))
-b = tf.Variable(tf.constant(.1, shape=[y_dim]))
+#y_dim = int(y.shape[1])
+#w = tf.Variable(tf.truncated_normal([num_hidden, y_dim]))
+#b = tf.Variable(tf.constant(.1, shape=[y_dim]))
 
-y_pred = tf.nn.xw_plus_b(last_outputs, w, b)
+#y_pred = tf.nn.xw_plus_b(last_outputs, w, b)
 # Matrix multiplication with bias
 
+
+
 # define loss, minimizer and error
-# not done yet but the cross_entropy will have to be redefined to include error
+# the cross_entropy will have to be redefined to include error
 #  for all of the time steps
-# also, the argument of this sigmoid_cross_entropy_with_logits function will
-#  probably have to be the output of the
-#  tensorflow.contrib.rnn.OutputProjectionWrapper function
+#cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred, labels=y)
 cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred, labels=y)
+
+
+
+# we still want to reduce cross_entropy which by now has been redefined
 train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
 
 mistakes = tf.not_equal(y, tf.maximum(tf.sign(y_pred), 0))
