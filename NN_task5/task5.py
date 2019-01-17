@@ -15,11 +15,16 @@ from grammar import *
 #sequence_length = 20
 num_train, num_valid, num_test = 5000, 500, 500
 
-#cell_type = 'simple'
-#cell_type = 'gru'
+# dimension of the one hot letters is 7 
+y_dim = 7
+
+# We have 7 symbols in the grammar
+# The input to the network is one symbol per time step
+# Symbols are encoded in one-hot vector encoding, a vector of lenght 7
+# The output of the network is 
 cell_type = 'lstm'
 # out number of hidden units is 14 not 20
-num_hidden = 20
+num_hidden = 14
 
 # the batch size for the stochastic gradient descent is not defined, for now it
 # can be 10% of the total, 50
@@ -34,17 +39,6 @@ max_epoch = 200
 # ----------------------------------------------------------------------
 
 # Data generation
-
-
-## Generate delayed XOR samples
-#X_train, y_train = generate_data(num_train, sequence_length)
-#sl_train = sequence_length * np.ones(num_train) # NEW
-#
-#X_valid, y_valid = generate_data(num_valid, sequence_length)
-#sl_valid = sequence_length * np.ones(num_valid) # NEW
-#
-#X_test, y_test = generate_data(num_test, sequence_length)
-#sl_test = sequence_length * np.ones(num_test) # NEW
 
 words = [ make_embedded_reber() for i in range(num_train + num_valid + num_test) ]
 max_len = len(max(words,key=len))
@@ -65,22 +59,6 @@ y_test = np.array( next_chars_one_hot[-num_test:] )
 sl_test = sl[-num_test:]
 
 
-# not related
-# # Crop data
-# # Artificially define variable sequence lengths
-# # for demo-purposes
-# for i in range(num_train):
-#     ll = 10+random.randint(0,sequence_length-10)
-#     sl_train[i] = ll
-# 
-# for i in range(num_valid):
-#     ll = 10+random.randint(0,sequence_length-10)
-#     sl_valid[i] = ll
-# 
-# for i in range(num_test):
-#     ll = 10+random.randint(0,sequence_length-10)
-#     sl_test[i] = ll
-
 # placeholder for the sequence length of the examples
 seq_length = tf.placeholder(tf.int32, [None])
 
@@ -98,15 +76,7 @@ X = tf.placeholder(tf.float32, [None, max_len, 7])
 y = tf.placeholder(tf.float32, [None, max_len, 7])
 
 # define recurrent layer
-if cell_type == 'simple':
-  cell = tf.nn.rnn_cell.BasicRNNCell(num_hidden)
-  # cell = tf.keras.layers.SimpleRNNCell(num_hidden) #alternative
-elif cell_type == 'lstm':
-  cell = tf.nn.rnn_cell.LSTMCell(num_hidden)
-elif cell_type == 'gru':
-  cell = tf.nn.rnn_cell.GRUCell(num_hidden)
-else:
-  raise ValueError('bad cell type.')
+cell = tf.nn.rnn_cell.LSTMCell(num_hidden)
 # Cells are one fully connected recurrent layer with num_hidden neurons
 # Activation function can be defined as second argument.
 # Standard activation function is tanh for BasicRNN and GRU
