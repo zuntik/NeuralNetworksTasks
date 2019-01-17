@@ -11,24 +11,19 @@ from grammar import *
 # ----------------------------------------------------------------------
 # parameters
 
-# dimetion of the one hot letters is 7 
+# dimetion of the one hot letters is 7 because there are seven possible letters
 y_dim = 7
 
 # sequence_length is no longer necessary
-#sequence_length = 20
 num_train, num_valid, num_test = 5000, 500, 500
 
-# our number of hidden units is 14 not 20
-num_hidden = 20
+num_hidden = 14
 
-# the batch size for the stochastic gradient descent is not defined, for now it
-# can be 1% of the total, 50, which will allow 100 changes to the weights per
-# epoch
 batch_size = 50
-learning_rate = 0.1
+learning_rate = 0.001
 # max epoch is necessary because the error may never be small enough on the
 # validadtion samples
-max_epoch = 300
+max_epoch = 200
 
 # ----------------------------------------------------------------------
 
@@ -78,26 +73,15 @@ cell = tf.nn.rnn_cell.LSTMCell(num_hidden)
 cell = tf.contrib.rnn.OutputProjectionWrapper(cell, y_dim)
 
 # only use outputs, ignore states
-outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32, sequence_length=seq_length) # NEW
-# tf.nn.dynamic_rnn(cell, inputs, ...)
-# Creates a recurrent neural network specified by RNNCell cell.
-# Performs fully dynamic unrolling of inputs.
-# Returns:
-# outputs: The RNN output Tensor shaped: [batch_size, max_time, cell.output_size].
-
+outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32, sequence_length=seq_length)
 
 # define loss, minimizer and error
 # the cross_entropy will have to be redefined to include error
 #  for all of the time steps
-#cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred, labels=y)
 cross_entropy = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=outputs, labels=y))
 
-
-
-# we still want to reduce cross_entropy which by now has been redefined
-train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
-# train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(cross_entropy)
-
+# train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
+train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(cross_entropy)
 
 mistakes = tf.not_equal(y, tf.maximum(tf.sign(outputs), 0))
 error = tf.reduce_mean(tf.cast(mistakes, tf.float32))
